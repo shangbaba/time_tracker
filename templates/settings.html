@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6 col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0"><i class="fas fa-cog me-2"></i>Settings</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-4">
+                        {{ form.current_rate.label(class="form-label fw-bold") }}
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            {{ form.current_rate(class="form-control") }}
+                            <span class="input-group-text">AUD/hour</span>
+                        </div>
+                        {% if form.current_rate.errors %}
+                            <div class="text-danger mt-1">
+                                {% for error in form.current_rate.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    {{ form.submit(class="btn btn-success w-100") }}
+                </form>
+                
+                <hr class="my-4">
+                
+                <div class="text-center">
+                    <p class="mb-2"><strong>Current Rate:</strong> ${{ "%.2f"|format(settings.current_rate) }} AUD/hour</p>
+                    <small class="text-muted">This rate applies to new time entries only</small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Data Management -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-database me-2"></i>Data Management</h5>
+            </div>
+            <div class="card-body">
+                <a href="{{ url_for('backup_data') }}" class="btn btn-outline-primary w-100 mb-2">
+                    <i class="fas fa-download me-2"></i>Backup Data (JSON)
+                </a>
+                <small class="text-muted d-block text-center">Export all your data for safekeeping</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

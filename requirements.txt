@@ -1,0 +1,8 @@
+# requirements.txt
+Flask==2.3.3
+Flask-SQLAlchemy==3.0.5
+Flask-WTF==1.1.1
+WTForms==3.0.1
+reportlab==4.0.4
+python-dateutil==2.8.2
+werkzeug==2.3.4

@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% block content %}
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-6 col-lg-3 mb-3">
+        <div class="card stats-card h-100">
+            <div class="card-body text-center">
+                <h6 class="text-muted">Total Hours</h6>
+                <h4 class="text-primary mb-0">{{ "%.1f"|format(stats.total_hours) }}h</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3 mb-3">
+        <div class="card stats-card h-100">
+            <div class="card-body text-center">
+                <h6 class="text-muted">Total Earned</h6>
+                <h4 class="text-success mb-0">{{ format_currency(stats.total_pay) }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3 mb-3">
+        <div class="card stats-card h-100">
+            <div class="card-body text-center">
+                <h6 class="text-muted">Unpaid Hours</h6>
+                <h4 class="text-warning mb-0">{{ "%.1f"|format(stats.unpaid_hours) }}h</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3 mb-3">
+        <div class="card stats-card h-100">
+            <div class="card-body text-center">
+                <h6 class="text-muted">Unpaid Amount</h6>
+                <h4 class="text-danger mb-0">{{ format_currency(stats.unpaid_pay) }}</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Controls -->
+<div class="row mb-3">
+    <div class="col-md-4 mb-2">
+        <div class="btn-group w-100" role="group">
+            <a href="{{ url_for('history', show_paid='true') }}" 
+               class="btn {{ 'btn-primary' if show_paid else 'btn-outline-primary' }}">
+                Show All
+            </a>
+            <a href="{{ url_for('history', show_paid='false') }}" 
+               class="btn {{ 'btn-warning' if not show_paid else 'btn-outline-warning' }}">
+                Unpaid Only
+            </a>
+        </div>
+    </div>
+    <div class="col-md-4 mb-2">
+        <a href="{{ url_for('pay_all', show_paid=show_paid, start_date=request.args.get('start_date'), end_date=request.args.get('end_date')) }}" 
+           class="btn btn-info w-100"
+           onclick="return confirm('Mark all filtered unpaid entries as paid?')">
+            <i class="fas fa-check-double me-2"></i>Pay All
+        </a>
+    </div>
+    <div class="col-md-4 mb-2">
+        <a href="{{ url_for('export_pdf') }}" class="btn btn-success w-100">
+            <i class="fas fa-file-pdf me-2"></i>Export Unpaid PDF
+        </a>
+    </div>
+</div>
+
+<!-- Date Range Filter -->
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">From Date</label>
+                <input type="date" name="start_date" class="form-control" 
+                       value="{{ request.args.get('start_date', '') }}">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">To Date</label>
+                <input type="date" name="end_date" class="form-control" 
+                       value="{{ request.args.get('end_date', '') }}">
+            </div>
+            <div class="col-md-4">
+                <input type="hidden" name="show_paid" value="{{ show_paid|lower }}">
+                <button type="submit" class="btn btn-primary w-100 mt-4">
+                    <i class="fas fa-filter me-2"></i>Filter
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Entries Table -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-history me-2"></i>Time Entries ({{ entries|length }})</h5>
+    </div>
+    <div class="card-body p-0">
+        {% if entries %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>#</th>
+                            <th>Date</th>
+                            <th>Start</th>
+                            <th>End</th>
+                            <th>Hours</th>
+                            <th>Rate</th>
+                            <th>Pay</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in entries %}
+                        <tr class="{{ 'paid-entry' if entry.is_paid else '' }}">
+                            <td>
+                                <strong>{{ entry.sequence_number }}</strong>
+                                {% if entry.is_overnight %}
+                                    <span class="badge overnight-badge ms-1">Overnight</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ entry.date.strftime('%d/%m/%Y') }}</td>
+                            <td>{{ entry.start_time.strftime('%H:%M') }}</td>
+                            <td>{{ entry.end_time.strftime('%H:%M') }}</td>
+                            <td>{{ "%.1f"|format(entry.total_hours) }}h</td>
+                            <td>${{ "%.2f"|format(entry.rate_at_entry) }}</td>
+                            <td><strong>{{ format_currency(entry.total_pay) }}</strong></td>
+                            <td>
+                                {% if entry.is_paid %}
+                                    <span class="badge bg-success">Paid</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">Unpaid</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group-vertical btn-group-sm">
+                                    <a href="{{ url_for('toggle_paid', entry_id=entry.id) }}" 
+                                       class="btn btn-sm {{ 'btn-outline-success' if entry.is_paid else 'btn-outline-warning' }}">
+                                        <i class="fas {{ 'fa-undo' if entry.is_paid else 'fa-check' }}"></i>
+                                        {{ 'Unpaid' if entry.is_paid else 'Paid' }}
+                                    </a>
+                                    <a href="{{ url_for('delete_entry', entry_id=entry.id) }}" 
+                                       class="btn btn-sm btn-outline-danger"
+                                       onclick="return confirm('Delete entry #{{ entry.sequence_number }}?')">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-clock fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">No time entries found</h4>
+                <p class="text-muted">Start by <a href="{{ url_for('time_entry') }}">adding your first entry</a></p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Mobile Action Buttons (shown on small screens) -->
+<div class="d-md-none mt-3">
+    <div class="row">
+        <div class="col-4">
+            <a href="{{ url_for('time_entry') }}" class="btn btn-primary w-100">
+                <i class="fas fa-plus me-1"></i>New
+            </a>
+        </div>
+        <div class="col-4">
+            <a href="{{ url_for('pay_all', show_paid=show_paid, start_date=request.args.get('start_date'), end_date=request.args.get('end_date')) }}" 
+               class="btn btn-info w-100"
+               onclick="return confirm('Mark all filtered unpaid entries as paid?')">
+                <i class="fas fa-check-double me-1"></i>Pay All
+            </a>
+        </div>
+        <div class="col-4">
+            <a href="{{ url_for('export_pdf') }}" class="btn btn-success w-100">
+                <i class="fas fa-file-pdf me-1"></i>PDF
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-refresh every 5 minutes to update stats
+setTimeout(() => location.reload(), 300000);
+</script>
+{% endblock %}

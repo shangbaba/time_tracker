@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6 col-md-8">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h3 class="mb-0"><i class="fas fa-plus me-2"></i>New Time Entry</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-4">
+                        {{ form.date.label(class="form-label fw-bold") }}
+                        {{ form.date(class="form-control") }}
+                        {% if form.date.errors %}
+                            <div class="text-danger mt-1">
+                                {% for error in form.date.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-6">
+                            {{ form.start_time.label(class="form-label fw-bold") }}
+                            {{ form.start_time(class="form-control") }}
+                            {% if form.start_time.errors %}
+                                <div class="text-danger mt-1">
+                                    {% for error in form.start_time.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-6">
+                            {{ form.end_time.label(class="form-label fw-bold") }}
+                            {{ form.end_time(class="form-control") }}
+                            {% if form.end_time.errors %}
+                                <div class="text-danger mt-1">
+                                    {% for error in form.end_time.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Overnight Shifts:</strong> If end time is earlier than start time, 
+                        it will automatically be treated as an overnight shift (ending the next day).
+                    </div>
+                    
+                    {{ form.submit(class="btn btn-success w-100") }}
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
